@@ -22,13 +22,52 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 	wire [1:0] rd;
 	wire [3:0] opcode;
 	wire [5:0] func_code;
-
+	wire bcond;
+	
 	wire [`WORD_SIZE-1:0] read_out1;
 	wire [`WORD_SIZE-1:0] read_out2;
-
+	wire [`WORD_SIZE-1:0] alu_output;
 	//FSM
 
+	always @(*) begin
+		case (current_state)
+			`IF_1: begin
 
+			end
+			`IF_2: begin
+
+			end
+			`IF_3: begin
+
+			end
+			`IF_4: begin
+
+			end
+			`ID: begin
+
+			end
+			`EX_1: begin
+
+			end
+			`EX_2: begin
+
+			end
+			`MEM_1: begin
+
+			end
+			`MEM_2: begin
+
+			end
+			`MEM_3: begin
+
+			end
+			`MEM_4: begin
+
+			end
+			`WB: begin
+
+			end
+	end
 
 	//register_file
 	register_file register_file_module(
@@ -61,17 +100,17 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 		.reg_write(    ), 
 		.alu_src_A(    ), 
 		.alu_src_B(    ), 
-		.alu_op(    )
+		.alu_op(    ) 
 	);
 
 	alu alu_module(
-		.A(    ), 
-		.B(    ), 
-		.func_code(    ), 
+		.A(read_out1), 
+		.B(alu_src ? imm_extended : read_out2), 
+		.func_code(func_code), 
 		.branch_type(    ), 
-		.C(    ), 
+		.C(alu_output), 
 		.overflow_flag(    ), 
-		.bcond(    )
+		.bcond(bcond;)
 	);
 
 	alu_control_unit alu_control_unit_module(

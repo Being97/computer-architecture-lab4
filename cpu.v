@@ -4,7 +4,7 @@
 module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, is_halted);
 	input clk;
 	input reset_n;
-	
+
 	output read_m;
 	output write_m;
 	output [`WORD_SIZE-1:0] address;
@@ -17,4 +17,78 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 
 	// TODO : implement multi-cycle CPU
 
+	wire [1:0] rs;
+	wire [1:0] rt;
+	wire [1:0] rd;
+	wire [3:0] opcode;
+	wire [5:0] func_code;
+
+	wire [`WORD_SIZE-1:0] read_out1;
+	wire [`WORD_SIZE-1:0] read_out2;
+
+	//FSM
+
+
+
+	//register_file
+	register_file register_file_module(
+		.read_out1(read_out1), 
+		.read_out2(read_out2), 
+		.read1(rs), 
+		.read2(rt), 
+		.write_reg(rd), 
+		.write_data(    ), 
+		.reg_write(    ), 
+		.clk(clk)
+	);
+
+	control_unit control_unit_module(
+		.opcode(opcode), 
+		.func_code(func_code), 
+		.clk(clk), 
+		.pc_write_cond(    ), 
+		.pc_write(    ), 
+		.i_or_d(    ), 
+		.mem_read(    ), 
+		.mem_to_reg(    ), 
+		.mem_write(    ), 
+		.ir_write(    ), 
+		.pc_to_reg(    ), 
+		.pc_src(    ), 
+		.halt(    ), 
+		.wwd(    ), 
+		.new_inst(), 
+		.reg_write(    ), 
+		.alu_src_A(    ), 
+		.alu_src_B(    ), 
+		.alu_op(    )
+	);
+
+	alu alu_module(
+		.A(    ), 
+		.B(    ), 
+		.func_code(    ), 
+		.branch_type(    ), 
+		.C(    ), 
+		.overflow_flag(    ), 
+		.bcond(    )
+	);
+
+	alu_control_unit alu_control_unit_module(
+		.funct(    ),
+		.opcode(opcode),
+		.ALUOp(    ),
+		.clk(clk),
+		.funcCode(    ),
+		.branchType(    )
+	);
+
+	memory memory_module(
+		.clk(clk),
+		.reset_n(reset_n),
+		.read_m(read_m),
+		.write_m(write_m),
+		.address(    ),
+		.data(    )
+	);
 endmodule

@@ -27,6 +27,9 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 	wire [`WORD_SIZE-1:0] read_out1;
 	wire [`WORD_SIZE-1:0] read_out2;
 	wire [`WORD_SIZE-1:0] alu_output;
+
+	reg [3:0] current_state;
+
 	//FSM
 
 	always @(*) begin
@@ -94,7 +97,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 		.ir_write(    ), 
 		.pc_to_reg(    ), 
 		.pc_src(    ), 
-		.halt(    ), 
+		.halt(is_halted), 
 		.wwd(    ), 
 		.new_inst(), 
 		.reg_write(    ), 

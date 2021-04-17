@@ -29,6 +29,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     wire ir_write;
     wire save_alu_out;
     wire branchType;
+    wire alu_op;
 
     reg [2:0] ALU_func;
     reg [5:0] func;
@@ -51,46 +52,44 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     end
     //num_inst update
     always @(posedge clk) begin
-           if (PVSWriteEn == 1) begin
-            num_inst <= num_inst + 1;
+      if (PVSWriteEn == 1) begin
+        num_inst <= num_inst + 1;
+      end
+      // memory logic
+      if (mem_write == 1) begin
+          output_data <= B;
+          write_m <= 1;
+      end
+      if (mem_read == 1) begin
+          read_m <= 1;
+      end
+      if (read_m == 1 && mem_read == 0) begin
+          if (i_or_d) begin
+              mem_data <= data;
           end
-        // memory logic
-        if (mem_write == 1) begin
-            output_data <= B;
-            write_m <= 1;
-        end
-        if (mem_read == 1) begin
-            read_m <= 1;
-        end
-        if (read_m == 1 && mem_read == 0) begin
-            if (i_or_d) begin
-                mem_data <= data;
-            end
-            else begin
-            instr <= data;
-            end
-            read_m <= 0;
-        end
-        if (write_m == 1 && mem_write == 0) begin
-        write_m <= 0;
-        end
-
-        if (ir_write) begin
-            opcode <= instr[`WORD_SIZE-1:12];
-            rs <= instr[11:10];
-            rt <= instr[9:8];
-            rd <= instr[7:6];
-            func <= instr[5:0];
-            imm <= instr[7:0];
-        end
-
-        if (reg_write) begin
-            A <= read_data_1;
-            B <= read_data_2;
-        end
-        if (save_alu_out) begin
-            alu_out <= alu_result;
-        end
+          else begin
+          instr <= data;
+          end
+          read_m <= 0;
+      end
+      if (write_m == 1 && mem_write == 0) begin
+      write_m <= 0;
+      end
+      if (ir_write) begin
+        opcode <= instr[`WORD_SIZE-1:12];
+        rs <= instr[11:10];
+        rt <= instr[9:8];
+        rd <= instr[7:6];
+        func <= instr[5:0];
+        imm <= instr[7:0];
+      end
+      if (reg_write) begin
+        A <= read_data_1;
+        B <= read_data_2;
+      end
+      if (save_alu_out) begin
+        alu_out <= alu_result;
+      end
     end
 
   control_unit cu(
@@ -113,18 +112,18 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     .alu_src_A(alu_src_A),
     .alu_src_B(alu_src_B),
     .alu_op(alu_op)
-    );
+  );
 
   mux2_1 mux1(.sel(i_or_d), .i1(pc), .i2(alu_out), .o(address));
 
-    alu_control_unit alu_control_unit(
-        .funct(func), 
-        .opcode(opcode), 
-        .ALUOp(alu_op), 
-        .clk(clk), 
-        .funcCode(ALU_func), 
-        .branchType(branchType)
-    );
+  alu_control_unit alu_control_unit(
+    .funct(func), 
+    .opcode(opcode), 
+    .ALUOp(alu_op), 
+    .clk(clk), 
+    .funcCode(ALU_func), 
+    .branchType(branchType)
+  );
 
   alu alu(
     .A(A),
@@ -134,7 +133,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     .C(alu_result),
     .overflow_flag(overflow_flag),
     .bcond(bcond)
-    );
+  );
 
   register_file reg_file(
     .read_out1(read_out1),
@@ -145,7 +144,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     .write_data(write_data),
     .reg_write(reg_write),
     .clk(clk)
-    );
+  );
 
   mux2_1 mux2(.sel(mem_to_reg), .i1(alu_out), .i2(mem_data), .o(write_data));
   mux2_1 mux3(.sel(alu_src_A), .i1(pc_prev), .i2(read_data_1), .o(A));

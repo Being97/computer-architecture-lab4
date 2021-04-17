@@ -39,6 +39,7 @@ module alu (A, B, func_code, branch_type, C, overflow_flag, bcond);
             else begin 
                C = ~A + 1;
             end
+         end
          `FUNC_SHL: begin C = A << 1; end
          `FUNC_SHR: begin C = $signed(A) >> 1; end
       endcase

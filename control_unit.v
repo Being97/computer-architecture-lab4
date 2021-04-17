@@ -37,6 +37,7 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
     mem_to_reg = 0;
     ir_write = 0;
     pc_to_reg = 0;
+    alu_op = 0;
   end
 
 	task initialize;
@@ -48,6 +49,7 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
       mem_to_reg = 0;
       ir_write = 0;
       save_alu_out = 0;
+      alu_op = 0;
 		end
 	endtask
 
@@ -94,11 +96,11 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
         next_state = `EX_1;
 			end
 			`EX_1: begin
-        save_alu_out = 1;
+        alu_op = 1;
         next_state = `EX_2;
 			end
 			`EX_2: begin
-        // save_alu_out = 0;
+        save_alu_out = 1;
         if (opcode == ld || opcode == sd) begin
           next_state = `MEM_1;
         end

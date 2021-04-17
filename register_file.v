@@ -26,7 +26,7 @@ module register_file(read_out1, read_out2, read1, read2, write_reg, write_data, 
 
   always @(posedge clk) begin
     if(reg_write) begin
-        GPR[write_reg] <= write_data;
+      GPR[write_reg] <= write_data;
     end
   end
 endmodule

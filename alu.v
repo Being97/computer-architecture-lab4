@@ -26,7 +26,7 @@ module alu (A, B, func_code, branch_type, C, overflow_flag, bcond);
 			`FUNC_AND: begin C = A & B; end
 			`FUNC_ORR: begin C = A | B; end
 			`FUNC_TCP: begin C = ~A + 1; end
-			`FUNC_SHL: begin C = A << B; end
+			`FUNC_SHL: begin C = A << 1; end
 			`FUNC_SHR: begin C = $signed (A) >> 1; end
       endcase
       case(branch_type)

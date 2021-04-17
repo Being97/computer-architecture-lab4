@@ -4,11 +4,11 @@ module register_file(read_out1, read_out2, read1, read2, write_reg, write_data, 
   input [1:0] read1;
   input [1:0] read2;
   input [1:0] write_reg;
-  input [15:0] write_data;
+  input [`WORD_SIZE-1:0] write_data;
   input reg_write;
   input clk;
-  output reg [15:0] read_out1;
-  output reg [15:0] read_out2;
+  output reg [`WORD_SIZE-1:0] read_out1;
+  output reg [`WORD_SIZE-1:0] read_out2;
 
   reg [`WORD_SIZE-1:0] GPR [`NUM_REGS-1:0];
 

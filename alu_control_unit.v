@@ -10,8 +10,7 @@ module alu_control_unit(funct, opcode, ALUOp, clk, funcCode, branchType);
   output reg [1:0] branchType;
 
   initial begin
-    funcCode = 0;
-    branchType = 0;
+    branchType = 2'b0;
   end
 
 	always @(posedge clk) begin

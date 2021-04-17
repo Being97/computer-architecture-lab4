@@ -1,9 +1,10 @@
 `include "opcodes.v"
 
-module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d, mem_read, mem_to_reg, mem_write, ir_write, pc_to_reg, pc_src, halt, wwd, new_inst, reg_write, alu_src_A, alu_src_B, alu_op, PVSWriteEn);
+module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i_or_d, mem_read, mem_to_reg, mem_write, ir_write, pc_to_reg, pc_src, halt, wwd, new_inst, reg_write, alu_src_A, alu_src_B, alu_op, PVSWriteEn, save_alu_out);
   input [3:0] opcode;
   input [5:0] func_code;
   input clk;
+  input bcond;
 
   output reg /*pc_write_cond, pc_write,*/ i_or_d, mem_read, mem_to_reg, mem_write, ir_write;
   output reg PVSWriteEn;
@@ -14,18 +15,17 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
   output reg [1:0] pc_src;
   //additional control signals. pc_to_reg: to support JAL, JRL. halt: to support HLT. wwd: to support WWD. new_inst: new instruction start
   output reg pc_to_reg, halt, wwd, new_inst;
-  output reg [1:0] reg_write, alu_src_A, alu_src_B;
+  // output reg [1:0] reg_write, alu_src_A, alu_src_B;
+  output reg reg_write, alu_src_A;
+  output reg [1:0] alu_src_B;
   output reg alu_op;
   output reg save_alu_out;
 
-  if(opcode == `ALU_OP && func_code == `INST_FUNC_JRL) begin
-    pc_to_reg = 1;
-    next_pc = read_out1;
-  end
-  else if(opcode == `ALU_OP && func_code == `INST_FUNC_JPR) begin
-    next_pc = read_out1; 
-  end
   
+
+  reg [3:0] current_state;
+  reg [3:0] next_state;
+
   initial begin
     current_state = `IF_1;
     PVSWriteEn = 1;
@@ -36,7 +36,7 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
     mem_write = 0;
     mem_to_reg = 0;
     ir_write = 0;
-    pc_to_reg = 0;
+    // pc_to_reg = 0;
     alu_op = 0;
   end
 
@@ -53,13 +53,21 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
 		end
 	endtask
 
-  always (@posedge clk) begin
+  // if((opcode == `ALU_OP) && (func_code == `INST_FUNC_JRL)) begin
+  //   pc_to_reg = 1;
+  //   next_pc = read_out1;
+  // end
+  // else if((opcode == `ALU_OP) && (func_code == `INST_FUNC_JPR)) begin
+  //   next_pc = read_out1; 
+  // end
+
+  always @(posedge clk) begin
     current_state <= next_state;
   end
 
 	always @(*) begin
     initialize();
-		case (current_state)
+		case (current_state) 
 			`IF_1: begin
         alu_src_A = 0;
         alu_src_B = 1;
@@ -101,10 +109,10 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
 			end
 			`EX_2: begin
         save_alu_out = 1;
-        if (opcode == ld || opcode == sd) begin
+        if (opcode == `LWD_OP || opcode == `SWD_OP) begin
           next_state = `MEM_1;
         end
-        else if (opcode == branch) begin
+        else if (opcode == `BNE_OP || opcode == `BEQ_OP || opcode == `BGZ_OP || opcode == `BLZ_OP) begin
           PVSWriteEn = 1;
           pc_src = bcond == 1 ? 1 : 0;
           next_state = `IF_1;
@@ -124,25 +132,23 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
 			end
 			`MEM_1: begin
         i_or_d = 1;
+        next_state = `MEM_2;
+			end
+			`MEM_2: begin
         if (opcode == `LWD_OP) begin
           mem_read = 1;
         end
         else if (opcode == `SWD_OP) begin
           mem_write = 1;
         end
-        next_state = `MEM_2;
-			end
-			`MEM_2: begin
-        // mem_read = 0;
-        // mem_write = 0;
         next_state = `MEM_3;        
 			end
 			`MEM_3: begin
         next_state = `MEM_4;
 			end
 			`MEM_4: begin
-        pc_write = 1;
-        if (opcode == ld) begin
+        // pc_write = 1;
+        if (opcode == `LWD_OP) begin
           next_state = `WB;
         end
         else begin
@@ -152,11 +158,13 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
 			end
 			`WB: begin
         reg_write = 1;
-        if (opcode == ld) begin
+        if (opcode == `LWD_OP) begin
           mem_to_reg = 1;
         end
-        if (opcode == `JRL_OP) begin
+        if((opcode == `ALU_OP) && (func_code == `INST_FUNC_JRL)) begin
           pc_src = 1;
+          // pc_to_reg = 1;
+          // next_pc = read_out1;
         end
         else if (opcode == `JAL_OP) begin
           pc_src = 2;
@@ -167,5 +175,6 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
         PVSWriteEn = 1;
         next_state = `IF_1;
 			end
-
+    endcase
+  end
 endmodule

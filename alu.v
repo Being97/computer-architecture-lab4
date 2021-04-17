@@ -13,7 +13,7 @@ module alu (A, B, func_code, branch_type, C, overflow_flag, bcond);
 
   //TODO: implement ALU
   initial begin 
-    C = 0;
+    C = 16'b0;
     overflow_flag = 0;
     bcond = 0;
   end

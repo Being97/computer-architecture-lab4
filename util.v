@@ -1,7 +1,9 @@
+`include "opcodes.v"
+
 module mux4_1 (sel, i1, i2, i3, i4, o);
     input [1:0] sel;
-    input [15:0] i1, i2, i3, i4;
-    output reg [15:0] o;
+    input [`WORD_SIZE-1:0] i1, i2, i3, i4;
+    output reg [`WORD_SIZE-1:0] o;
 
     always @ (*) begin
       case (sel)
@@ -16,9 +18,9 @@ endmodule
 
 
 module mux2_1 (sel, i1, i2, o);
-  input [1:0] sel;
-  input [15:0] i1, i2;
-  output reg [15:0] o;
+  input sel;
+  input [`WORD_SIZE-1:0] i1, i2;
+  output reg [`WORD_SIZE-1:0] o;
 
   always @ (*) begin
     case (sel)

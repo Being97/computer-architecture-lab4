@@ -42,7 +42,6 @@
 `define INST_FUNC_HLT 6'd29
 
 `define   WORD_SIZE   16         
-'
 `define   NUM_REGS   4
 
 `define IF_1 4'b0000

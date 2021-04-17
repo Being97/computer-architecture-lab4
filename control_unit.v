@@ -18,24 +18,25 @@ module control_unit(opcode, func_code, clk, /*pc_write_cond, pc_write,*/ i_or_d,
   output reg alu_op;
   output reg save_alu_out;
 
-  if(opcode == `ALU_OP && func == `INST_FUNC_JRL) begin
-    pc_to_reg <= 1;
-    next_pc <= read_out1;
+  if(opcode == `ALU_OP && func_code == `INST_FUNC_JRL) begin
+    pc_to_reg = 1;
+    next_pc = read_out1;
   end
-  else if(opcode == `ALU_OP && func == `INST_FUNC_JPR) begin
-    next_pc <= read_out1; 
+  else if(opcode == `ALU_OP && func_code == `INST_FUNC_JPR) begin
+    next_pc = read_out1; 
   end
   
   initial begin
-    current_state <= `IF_1;
-    PVSWriteEn <= 1;
-    save_alu_out <= 0;
-    ir_write <= 0;
-    reg_write <= 0;
-    mem_read <= 0;
-    mem_write <= 0;
-    mem_to_reg <= 0;
-    ir_write <= 0;
+    current_state = `IF_1;
+    PVSWriteEn = 1;
+    save_alu_out = 0;
+    ir_write = 0;
+    reg_write = 0;
+    mem_read = 0;
+    mem_write = 0;
+    mem_to_reg = 0;
+    ir_write = 0;
+    pc_to_reg = 0;
   end
 
 	task initialize;

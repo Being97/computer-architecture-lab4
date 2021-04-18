@@ -52,7 +52,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     wire [`WORD_SIZE-1:0] pc_update;
     wire [`WORD_SIZE-1:0] read_out1;
     wire [`WORD_SIZE-1:0] read_out2;
-
+    reg [`WORD_SIZE-1:0] target_addr;
 
 
     // TODO : implement multi-cycle CPU
@@ -118,6 +118,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
         rt <= data[9:8];
         rd <= data[7:6];
         func <= data[5:0];
+        target_addr <= data[11:0];
         // imm <= data[7:0];
         if (opcode != `ORI_OP) begin
             imm_extended = $signed(data[7:0]);
@@ -201,5 +202,5 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
   mux2_1 mux2(.sel(mem_to_reg), .i1(alu_out), .i2(data), .o(write_data));
   mux2_1 mux3(.sel(alu_src_A), .i1(pc), .i2(read_data_1), .o(alu_input_1));
   mux4_1 mux4(.sel(alu_src_B), .i1(B), .i2(16'b1), .i3(imm_extended), .i4(16'b0), .o(alu_input_2));
-  mux4_1 mux5(.sel(pc_src), .i1(alu_result), .i2(alu_out), .i3({4'd0, data[11:0]}), .i4(16'b0), .o(pc_update));
+  mux4_1 mux5(.sel(pc_src), .i1(alu_result), .i2(alu_out), .i3({4'd0, target_addr}), .i4(16'b0), .o(pc_update));
 endmodule

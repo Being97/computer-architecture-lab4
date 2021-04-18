@@ -33,6 +33,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     wire [`WORD_SIZE-1:0] alu_input_1;
     wire [`WORD_SIZE-1:0] alu_input_2;
     wire [`WORD_SIZE-1:0] address_update;
+    wire [`WORD_SIZE-1:0] pc_wire;
     wire ir_write;
     wire save_alu_out;
     wire [1:0] branchType;
@@ -46,10 +47,11 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     reg [7:0] imm;
     reg [`WORD_SIZE-1:0] imm_extended;
     reg [`WORD_SIZE-1:0] alu_out;
+    reg [11:0] target_addr;
     wire [`WORD_SIZE-1:0] alu_result;
-    reg [`WORD_SIZE-1:0] output_data;
+    //reg [`WORD_SIZE-1:0] output_data;
     reg [`WORD_SIZE-1:0] pc;
-    wire [`WORD_SIZE-1:0] pc_update;
+    reg [`WORD_SIZE-1:0] pc_update;
     wire [`WORD_SIZE-1:0] read_out1;
     wire [`WORD_SIZE-1:0] read_out2;
 
@@ -57,23 +59,35 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 
     // TODO : implement multi-cycle CPU
 
-    assign data = write_m?output_data:`WORD_SIZE'bz;
+    assign data = write_m ? read_out2 : `WORD_SIZE'bz;
+    assign pc_wire = pc;
 
     //initialization
     initial begin
         func <= 6'b0;
         opcode <= 4'b0;
+        write_m <= 0;
+        read_m <= 1;
+        pc <= 0;
+        pc_update <= 0;
     end
-    //num_inst update
+    
+    //instruction fetch
+
     always @(posedge clk) begin
+      $display("read_m = %b, write_m = %b, data: %b, read_out2: %b",read_m,write_m, data, read_out2);
+      //num_inst update
       if (PVSWriteEn == 1) begin
-        pc <= pc_update;
+        pc_update <= pc_update + 1;
+			  pc <= pc_update;
+        //(opcode == `JMP_OP) ? target_addr : ((func_code == `INST_FUNC_JPR) || (func_code == `INST_FUNC_JRL) ? alu_out : (((bcond && (opcode == `BNE_OP) || (opcode == `BEQ_OP) || (opcode == `BGZ_OP) || (opcode == `BLZ_OP)) || (opcode == `JMP_OP) || (opcode == `JAL_OP)) ? pc_update + imm_extended : pc_update));
+			  address <= pc_update;
         num_inst <= num_inst + 1;
       end
       // memory logic
       if (mem_write == 1) begin
         address <= address_update;
-        output_data <= B;
+        read_out2 <= B;
         write_m <= 1;
       end
       if (mem_read == 1) begin
@@ -94,18 +108,22 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
       end
       if (ir_write) begin
         opcode <= data[`WORD_SIZE-1:12];
+        target_addr <= data[11:0];
         rs <= data[11:10];
         rt <= data[9:8];
         rd <= data[7:6];
         func <= data[5:0];
         // imm <= data[7:0];
-      if (opcode != `ORI_OP) begin
-          imm_extended = $signed(data[7:0]);
-        end
-        else begin
-          imm_extended[15:0] = {{8{data[7]}}, data[7:0]};
-        end
+        if (opcode != `ORI_OP) begin
+            imm_extended = $signed(data[7:0]);
+          end
+          else begin
+            imm_extended[15:0] = {{8{data[7]}}, data[7:0]};
+          end
       end
+      if(opcode == `WWD_OP && func == `INST_FUNC_WWD) begin
+        output_port = rs;
+      end // WWD instruction에서 outputport로 rs를 내보냄 -> tb에서 테스트용으로 쓰임
       if (reg_write) begin
         A <= read_data_1;
         B <= read_data_2;
@@ -175,5 +193,5 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
   mux2_1 mux2(.sel(mem_to_reg), .i1(alu_out), .i2(data), .o(write_data));
   mux2_1 mux3(.sel(alu_src_A), .i1(pc), .i2(read_data_1), .o(alu_input_1));
   mux4_1 mux4(.sel(alu_src_B), .i1(B), .i2(16'b1), .i3(imm_extended), .i4(16'b0), .o(alu_input_2));
-  mux4_1 mux5(.sel(pc_src), .i1(alu_result), .i2(alu_out), .i3({4'd0, data[11:0]}), .i4(16'b0), .o(pc_update));
+  mux4_1 mux5(.sel(pc_src), .i1(alu_result), .i2(alu_out), .i3({4'd0, data[11:0]}), .i4(16'b0), .o(pc_wire));
 endmodule

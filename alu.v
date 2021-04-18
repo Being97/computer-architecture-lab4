@@ -18,9 +18,8 @@ module alu (A, B, func_code, branch_type, C, overflow_flag, bcond);
     bcond = 0;
   end
 
-  always @(A or B or func_code or branch_type) begin
+  always @(*) begin
       overflow_flag = 0;
-
       case(func_code)
          `FUNC_ADD: begin 
             if (A + B > `NumBits'b1111111111111111) begin
@@ -40,8 +39,8 @@ module alu (A, B, func_code, branch_type, C, overflow_flag, bcond);
                C = ~A + 1;
             end
          end
-         `FUNC_SHL: begin C = A << 1; end
-         `FUNC_SHR: begin C = $signed(A) >> 1; end
+         `FUNC_SHL: begin C = A << B; end
+         `FUNC_SHR: begin C = $signed(A) >> B; end
       endcase
 
       case(branch_type)
@@ -50,5 +49,6 @@ module alu (A, B, func_code, branch_type, C, overflow_flag, bcond);
          2'b10: begin bcond = A > 0; end
          2'b11: begin bcond = A < 0; end
       endcase
+      $display("---------ALU--------- func_code: %b, A: %b, B: %b, C: %b", func_code, A, B, C);
    end
 endmodule

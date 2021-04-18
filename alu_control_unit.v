@@ -11,9 +11,11 @@ module alu_control_unit(funct, opcode, ALUOp, clk, funcCode, branchType);
 
   initial begin
     branchType = 2'b0;
+    funcCode = 3'b0;
   end
 
 	always @(posedge clk) begin
+    funcCode = 0;
     if (ALUOp) begin
       if (opcode == `ALU_OP) begin
         case(funct)
@@ -35,5 +37,7 @@ module alu_control_unit(funct, opcode, ALUOp, clk, funcCode, branchType);
       else if(opcode == `BGZ_OP) begin branchType = 2'b10; end
       else if(opcode == `BLZ_OP) begin branchType = 2'b11; end
     end
+
+    //$display("-----ALU CONTROL----- opcode: %b, funct: %b, funcCode: %b, ALUOp: %b", opcode, funct, funcCode, ALUOp);
 	end
 endmodule

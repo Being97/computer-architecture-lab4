@@ -51,6 +51,8 @@ module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i
       ir_write = 0;
       save_alu_out = 0;
       alu_op = 0;
+      alu_src_A = 1;
+      alu_src_B = 0;
 		end
 	endtask
 
@@ -108,6 +110,7 @@ module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i
         end
         `IF_4: begin
           $display("IF_4");
+          alu_op = 1;
           // ir_write = 0;
           if (opcode == `JAL_OP) begin
             pc_src = 2;
@@ -130,6 +133,13 @@ module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i
         end
         `EX_1: begin
           $display("EX_1");
+          if(opcode == `LHI_OP) begin
+            alu_src_B = 3;
+          end
+          else if(opcode == `ADI_OP || opcode == `ORI_OP) begin
+            alu_src_B = 2;
+          end
+
           alu_op = 1;
           next_state = `EX_2;
         end

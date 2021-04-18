@@ -97,6 +97,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
         write_m <= 1;
       end
       if (mem_read == 1) begin
+        $display("[MEM_READ] address %b, pc_src: %b, pc_update: %b", address_update, pc_src, pc_update);
         address <= address_update;
         // if (i_or_d) begin
         //   address <= 
@@ -139,6 +140,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
       if (save_alu_out) begin
         alu_out <= alu_result;
       end
+      //$display("---------CPU--------- data: %b pc_update: %b alu_input_2: %b, alu_result: %b, read_out1: %b, read_out2: %b", data, pc_update, alu_input_2, alu_result, read_out1, read_out2);
     end
 
   control_unit cu(
@@ -201,6 +203,6 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 
   mux2_1 mux2(.sel(mem_to_reg), .i1(alu_out), .i2(data), .o(write_data));
   mux2_1 mux3(.sel(alu_src_A), .i1(pc), .i2(read_data_1), .o(alu_input_1));
-  mux4_1 mux4(.sel(alu_src_B), .i1(B), .i2(16'b1), .i3(imm_extended), .i4(16'b0), .o(alu_input_2));
+  mux4_1 mux4(.sel(alu_src_B), .i1(B), .i2(16'b1), .i3(imm_extended), .i4(16'b1000), .o(alu_input_2));
   mux4_1 mux5(.sel(pc_src), .i1(alu_result), .i2(alu_out), .i3({4'd0, target_addr}), .i4(16'b0), .o(pc_update));
 endmodule

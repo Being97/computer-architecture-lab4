@@ -61,6 +61,8 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
 
     assign data = write_m ? read_out2 : `WORD_SIZE'bz;
     assign pc_wire = pc;
+    assign output_port = (opcode == `WWD_OP && func == `INST_FUNC_WWD) ? read_out2 : 0;
+    // WWD instruction에서 outputport로 rs를 내보냄 -> tb에서 테스트용으로 쓰임
 
     //initialization
     initial begin
@@ -87,7 +89,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
       // memory logic
       if (mem_write == 1) begin
         address <= address_update;
-        read_out2 <= B;
+        B <= read_out2;
         write_m <= 1;
       end
       if (mem_read == 1) begin
@@ -121,9 +123,6 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
             imm_extended[15:0] = {{8{data[7]}}, data[7:0]};
           end
       end
-      if(opcode == `WWD_OP && func == `INST_FUNC_WWD) begin
-        output_port = rs;
-      end // WWD instruction에서 outputport로 rs를 내보냄 -> tb에서 테스트용으로 쓰임
       if (reg_write) begin
         A <= read_data_1;
         B <= read_data_2;

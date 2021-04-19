@@ -40,6 +40,7 @@ module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i
     alu_op = 0;
     state_updated = 1;
     pc_new = 0;
+    wwd = 0;
   end
 
 	task initialize;
@@ -50,6 +51,7 @@ module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i
       ir_write = 0;
       save_alu_out = 0;
       pc_new = 0;   
+      wwd = 0;
 		end
 	endtask
 
@@ -78,7 +80,8 @@ module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i
       // pc_to_reg <= 0;
       alu_op <= 0;
       state_updated <= 0;   
-      pc_new <= 0;   
+      pc_new <= 0;
+      wwd <= 0;
     end
     else begin
       current_state <= next_state;
@@ -124,13 +127,17 @@ module control_unit(opcode, func_code, clk, bcond,/*pc_write_cond, pc_write,*/ i
             next_state = `IF_1;
             PVSWriteEn = 1;
           end else if(opcode == `WWD_OP) begin
-            pc_src = 0;
-            next_state = `IF_1;
-            PVSWriteEn = 1;
+            next_state = `WWD;
           end
           else begin
             next_state = `EX_1;
           end
+        end
+        `WWD: begin
+          wwd = 1;
+          pc_src = 0;
+          PVSWriteEn = 1;
+          next_state = `IF_1;   
         end
         `EX_1: begin
           $display("EX_1");

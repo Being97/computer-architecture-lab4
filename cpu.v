@@ -40,6 +40,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     wire alu_op;
     wire [1:0] pc_src;
     wire [2:0] ALU_func;
+    wire wwd;
 
     reg [5:0] func;
     reg [3:0] opcode;
@@ -64,19 +65,19 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
     assign read_m = mem_read;
     assign write_m = mem_write;
     // assign pc_wire = pc;
-    // assign output_port = (opcode == `WWD_OP && func == `INST_FUNC_WWD) ? read_out2 : 0;
+    // assign output_port = (func == `INST_FUNC_WWD) ? read_out2 : 0;
     // WWD instruction에서 outputport로 rs를 내보냄 -> tb에서 테스트용으로 쓰임
 
     //initialization
     initial begin
-      num_inst <= 0;
+      num_inst <= -1;
       func <= 6'b0;
       opcode <= 4'b0;
       pc <= 0;
     end
 
     always @(posedge reset_n) begin
-      num_inst <= 0;
+      num_inst <= -1;
       func <= 6'b0;
       opcode <= 4'b0;
       write_m <= 0;
@@ -89,11 +90,21 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
         pc = tmp_pc_update;
       end
     end
+    // always @(*) begin
+    //   if (update_wwd) begin
+    //     $display("[WWD] read_out2: %d", read_out2);
+    //     output_port = read_out2;
+    //   end
+    // end
+    // always @(negedge PVSWriteEn) begin
+    // end
 
     always @(posedge clk) begin
       if (reset_n) begin
-        if (PVSWriteEn == 1) begin
-          $display("======================== %d =========================", num_inst);
+        // WWD instruction에서 outputport로 rs를 내보냄 -> tb에서 테스트용으로 쓰임
+        if (wwd) begin
+          $display("[WWD] read_out2: %d", read_out2);
+          output_port <= read_out2;
         end
         // memory logic
         if (mem_write == 1) begin
@@ -104,7 +115,6 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
         if (mem_read == 1) begin
           $display("[MEM_READ] i_or_d: %b, address %b, pc_src: %b, pc_update: %b", i_or_d, address_update, pc_src, pc_update);
           if (!i_or_d) begin
-            num_inst <= num_inst + 1;
             address <= pc_update;
             tmp_pc_update <= pc_update;
           end else begin
@@ -118,6 +128,7 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
         //   write_m <= 0;
         // end
         if (ir_write) begin
+          output_port <= 0;
           opcode <= data[`WORD_SIZE-1:12];
           rs <= data[11:10];
           rt <= data[9:8];
@@ -133,14 +144,13 @@ module cpu(clk, reset_n, read_m, write_m, address, data, num_inst, output_port, 
           end
           $display("[ID] data: %b", data);
         end
+        if (PVSWriteEn == 1) begin
+          num_inst <= num_inst + 1;
+          $display("======================== %d =========================", num_inst);
+        end
         if (mem_to_reg) begin
           mem_data <= data;
         end
-        if(opcode == `WWD_OP && func == `INST_FUNC_WWD) begin
-          output_port = read_out2;
-        end else begin
-          output_port = 0;
-        end// WWD instruction에서 outputport로 rs를 내보냄 -> tb에서 테스트용으로 쓰임
         // if (reg_write) begin
         //   A <= read_data_1;
         //   B <= read_data_2;

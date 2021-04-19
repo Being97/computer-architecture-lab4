@@ -19,9 +19,10 @@ module register_file(read_out1, read_out2, read1, read2, write_reg, write_data, 
     GPR[3] = 0;
   end
 
-  always @(*) begin      
+  always @(*) begin 
     read_out1 = GPR[read1];
     read_out2 = GPR[read2];
+    $display("[REGISTERS] 0: %d, 1: %d, 2: %d, 3: %d", GPR[0], GPR[1], GPR[2], GPR[3]);     
   end
 
   always @(posedge clk) begin

@@ -56,3 +56,5 @@
 `define MEM_3 4'b1001
 `define MEM_4 4'b1010
 `define WB 4'b1011
+`define WWD 4'b1100
+
